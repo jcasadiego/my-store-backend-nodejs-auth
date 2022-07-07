@@ -1,4 +1,4 @@
-# Curso de Backend con Node.js: Base de Datos con PostgreSQL 
+# Curso de Backend con Node.js: Autenticación con Passport.js y JWT
 
 Para iniciar el proyecto:
  
