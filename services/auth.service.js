@@ -29,24 +29,10 @@ class AuthService {
         role: user.role
       };
       const token = jwt.sign(payload, config.jwtSecret);
-      res.json({
+      return {
         user,
         token
-      });
-  }
-
-  async sendMail(infoMail){
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      secure: true, // true for 465, false for other ports
-      port: 465,
-      auth: {
-          user: `${config.emailAdmin}`,
-          pass: `${config.passAdmin}`
-      },
-    });
-    await transporter.sendMail(infoMail);
-    return { message: 'mail sent' };
+      };
   }
 
   async sendRecovery(email){
@@ -67,6 +53,35 @@ class AuthService {
     }
     const rta = await this.sendMail(mail);
     return rta;
+  }
+
+  async changePassword(token, newPassword){
+    try {
+      const payload = jwt.verify(token, config.jwtSecret);
+      const user = await service.findOne(payload.sub);
+      if( user.recoveryToken !== token) {
+        throw boom.unauthorized();
+      }
+      const hash = await bcrypt.hash(newPassword, 10);
+      await service.update(user.id, { recoveryToken: null, password: hash });
+      return { message: 'password changed' };
+    } catch (error) {
+      throw boom.unauthorized();
+    }
+  }
+
+  async sendMail(infoMail){
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      secure: true, // true for 465, false for other ports
+      port: 465,
+      auth: {
+          user: `${config.emailAdmin}`,
+          pass: `${config.passAdmin}`
+      },
+    });
+    await transporter.sendMail(infoMail);
+    return { message: 'mail sent' };
   }
 }
 
